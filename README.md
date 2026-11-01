@@ -21,3 +21,15 @@ La migration crée les UUID, références permanentes, contraintes financières,
 ## État actuel
 
 Le shell UI est en place et compile. La migration est prête à être appliquée sur un **nouveau** projet Supabase. L’interface doit encore être reliée aux tables Supabase et complétée avec les workflows de confirmation, impressions/PDF, gestion des rôles et tests d’intégration avant une utilisation en production.
+
+## Dépannage RLS
+
+Si la création d’un client affiche `new row violates row-level security policy`, l’utilisateur connecté n’est pas encore un profil actif `ADMIN` ou `MANAGER`. Exécutez d’abord la migration de réparation des profils, puis dans SQL Editor :
+
+```sql
+insert into public.profiles (id, display_name, role, is_active)
+select id, email, 'ADMIN'::public.app_role, true
+from auth.users
+where email = 'VOTRE_EMAIL'
+on conflict (id) do update set role = 'ADMIN', is_active = true;
+```
